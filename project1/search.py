@@ -61,7 +61,6 @@ class SearchProblem:
         """
         util.raiseNotDefined()
 
-
 def tinyMazeSearch(problem):
     """
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
@@ -94,10 +93,38 @@ def breadthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
 
+def pushSuccessors(queue, successors):
+    for successor in successors:
+        queue.push(successor[0], successor[2])
+
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    if problem.isGoalState(problem.getStartState()):
+        return [] # nothing to do if start state is a goal
+
+    visitted = util.Counter() # the counter to keep track of costs to visitted states
+    visitted[problem.getStartState()] = 10**-15 
+    queue = util.PriorityQueue() # priority queue to determine order of search
+
+    successors = problem.getSuccessors(problem.getStartState())
+    for successor in successors:
+        # push the state, the path to it, and the cost to the state as the key, and its cost as the priority
+        queue.push((successor[0],[successor[1]], successor[2]), successor[2]) 
+
+    while (not queue.isEmpty()):
+        state, path, cost = queue.pop()
+        if (problem.isGoalState(state)):
+            return path
+        successors = problem.getSuccessors(state)
+        for successor in successors:
+            if (not visitted[successor[0]] or (visitted[successor[0]] > cost + visitted[successor[2]])): 
+                # push the state, the path to it, and the cost to the state as the key, and its cost as the priority
+                queue.push((successor[0],path + [successor[1]], cost + successor[2]), cost + successor[2]) 
+
+        visitted[state] = cost # update the visitted counter to indicate the new shortest distance to that state
+    return None
 
 def nullHeuristic(state, problem=None):
     """
@@ -109,7 +136,37 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # cost function for calculating the sum of the movement and the heuristic
+    def costFunction(item):
+        return heuristic(item[0], problem) + item[2]
+
+    if problem.isGoalState(problem.getStartState()):
+        return [] # nothing to do if start state is a goal
+
+    path = [problem.getStartState()] 
+    visitted = util.Counter() # the counter to keep track of costs to visitted states
+    visitted[problem.getStartState()] = 10**-15
+    queue = util.PriorityQueueWithFunction(costFunction) # priority queue to determine order of search
+
+    successors = problem.getSuccessors(problem.getStartState())
+    for successor in successors:
+        # push the state, the path to it, and the cost to the state as the key, and its cost as the priority
+        queue.push((successor[0],[successor[1]], successor[2]))
+
+    while (not queue.isEmpty()):
+        state, path, cost = queue.pop()
+
+
+        if (problem.isGoalState(state)):
+            return path
+        successors = problem.getSuccessors(state)
+        for successor in successors:
+            if (not visitted[successor[0]] or (visitted[successor[0]] > cost + visitted[successor[2]])): 
+                # push the state, the path to it, and the cost to the state as the key, and its cost as the priority
+                queue.push((successor[0],path + [successor[1]], cost + successor[2]))
+
+        visitted[state] = cost
 
 
 # Abbreviations
