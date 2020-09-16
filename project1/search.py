@@ -152,11 +152,11 @@ def uniformCostSearch(problem):
 
     while (not queue.isEmpty()):
         state, path, cost = queue.pop()
-        if (problem.isGoalState(state)):
-            return path
-        successors = problem.getSuccessors(state)
-        for successor in successors:
-            if (not visitted[successor[0]] or (visitted[successor[0]] > cost + visitted[successor[2]])): 
+        if not visitted[state]: 
+            if (problem.isGoalState(state)):
+                return path
+            successors = problem.getSuccessors(state)
+            for successor in successors:
                 # push the state, the path to it, and the cost to the state as the key, and its cost as the priority
                 queue.push((successor[0],path + [successor[1]], cost + successor[2]), cost + successor[2]) 
 
@@ -194,12 +194,11 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     while (not queue.isEmpty()):
         state, path, cost = queue.pop()
 
-
-        if (problem.isGoalState(state)):
-            return path
-        successors = problem.getSuccessors(state)
-        for successor in successors:
-            if (not visitted[successor[0]] or (visitted[successor[0]] > cost + visitted[successor[2]])): 
+        if not visitted[state]: 
+            if (problem.isGoalState(state)):
+                return path
+            successors = problem.getSuccessors(state)
+            for successor in successors:
                 # push the state, the path to it, and the cost to the state as the key, and its cost as the priority
                 queue.push((successor[0],path + [successor[1]], cost + successor[2]))
 
