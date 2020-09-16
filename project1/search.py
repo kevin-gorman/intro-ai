@@ -91,19 +91,19 @@ def depthFirstSearch(problem):
     vis = []
 
     while not struc.isEmpty():
-        cur, paths = struc.pop()
+        cur, path = struc.pop()
         if problem.isGoalState(cur):
-            return paths
+            return path
 
         
         if cur not in vis:
             vis.append(cur)
-        
 
             successors = problem.getSuccessors(cur)
-            for state, path, cost in successors:
-                nextPath = paths + [path]
-                struc.push((state, nextPath))
+            for successor in successors:
+
+                newPath = path + [successor[1]]
+                struc.push((successor[0], newPath))
 
 
 
@@ -116,9 +116,9 @@ def breadthFirstSearch(problem):
     vis = []
 
     while not struc.isEmpty():
-        cur, paths = struc.pop()
+        cur, path = struc.pop()
         if problem.isGoalState(cur):
-            return paths
+            return path
 
         
         if cur not in vis:
@@ -126,11 +126,9 @@ def breadthFirstSearch(problem):
         
 
             successors = problem.getSuccessors(cur)
-            for state, path, cost in successors:
-                nextPath = paths + [path]
-                struc.push((state, nextPath))
-
-    util.raiseNotDefined()
+            for successor in successors:
+                newPath = path + [successor[1]]
+                struc.push((successor[0], newPath))
 
 def pushSuccessors(queue, successors):
     for successor in successors:
