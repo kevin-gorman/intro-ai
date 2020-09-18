@@ -130,10 +130,6 @@ def breadthFirstSearch(problem):
                 newPath = path + [successor[1]]
                 struc.push((successor[0], newPath))
 
-def pushSuccessors(queue, successors):
-    for successor in successors:
-        queue.push(successor[0], successor[2])
-
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
@@ -141,8 +137,8 @@ def uniformCostSearch(problem):
     if problem.isGoalState(problem.getStartState()):
         return [] # nothing to do if start state is a goal
 
-    visitted = util.Counter() # the counter to keep track of costs to visitted states
-    visitted[problem.getStartState()] = 10**-15 
+    visited = [] # the list to keep track of costs to visitted states
+    visited.append(problem.getStartState())
     queue = util.PriorityQueue() # priority queue to determine order of search
 
     successors = problem.getSuccessors(problem.getStartState())
@@ -152,7 +148,7 @@ def uniformCostSearch(problem):
 
     while (not queue.isEmpty()):
         state, path, cost = queue.pop()
-        if not visitted[state]: 
+        if not state in visited: 
             if (problem.isGoalState(state)):
                 return path
             successors = problem.getSuccessors(state)
@@ -160,7 +156,7 @@ def uniformCostSearch(problem):
                 # push the state, the path to it, and the cost to the state as the key, and its cost as the priority
                 queue.push((successor[0],path + [successor[1]], cost + successor[2]), cost + successor[2]) 
 
-        visitted[state] = cost # update the visitted counter to indicate the new shortest distance to that state
+        visited.append(state) # update the visitted counter to indicate the new shortest distance to that state
     return None
 
 def nullHeuristic(state, problem=None):
@@ -182,8 +178,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         return [] # nothing to do if start state is a goal
 
     path = [problem.getStartState()] 
-    visitted = util.Counter() # the counter to keep track of costs to visitted states
-    visitted[problem.getStartState()] = 10**-15
+    visited = [] # the list to keep track of costs to visitted states
+    visited.append(problem.getStartState())
     queue = util.PriorityQueueWithFunction(costFunction) # priority queue to determine order of search
 
     successors = problem.getSuccessors(problem.getStartState())
@@ -194,7 +190,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     while (not queue.isEmpty()):
         state, path, cost = queue.pop()
 
-        if not visitted[state]: 
+        if not state in visited: 
             if (problem.isGoalState(state)):
                 return path
             successors = problem.getSuccessors(state)
@@ -202,7 +198,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 # push the state, the path to it, and the cost to the state as the key, and its cost as the priority
                 queue.push((successor[0],path + [successor[1]], cost + successor[2]))
 
-        visitted[state] = cost
+        visited.append(state)
 
 
 # Abbreviations
