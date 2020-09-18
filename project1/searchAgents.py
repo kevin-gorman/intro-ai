@@ -493,9 +493,28 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
+
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+
+    order = foodGrid.asList();
+
+    "If?"
+
+    if (len(order) == 0):
+        return 0
+
+    bestDot = order[0]
+    best = util.manhattanDistance(position, bestDot)
+
+    for dot in order[1:]:
+        temp = util.manhattanDistance(position, dot)
+        if temp > best:
+            best = temp
+            bestDot = dot
+
+
+    return util.manhattanDistance(position, bestDot)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -526,6 +545,7 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
+        
         util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
