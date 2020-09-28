@@ -300,17 +300,128 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+
+        # To be called at end of expimax when choosing max action #
+        def expNext(x):
+            return expectimax(gameState.generateSuccessor(0, x), 1, 1)
+       
+
+        # Expectimax function #
+        def expectimax(state, agent, depth):
+
+           
+            # If ghost turn (min layer) #
+            if agent == state.getNumAgents():
+
+
+                # If we're not at the bottom depth, we increase depth #
+                # and call the function again with it being pacman turn #                 
+                if depth != self.depth:
+                    return expectimax(state, 0, depth + 1)
+
+                # If we're at max depth just evaluate the actions #
+                else:
+                    return self.evaluationFunction(state)
+
+                                      
+            else:
+                # get possible actions #
+                actions = state.getLegalActions(agent)
+
+                # if we can't do anything, return evaluating state #                
+                if len(actions) == 0:
+                    return self.evaluationFunction(state)
+
+                # Here we can do something, so let's find what it is #
+                # by calling expectimax on all possible actions #                
+                maxAct = (expectimax(state.generateSuccessor(agent, action), agent + 1, depth) for action in actions)
+
+
+                # if ghost turn (min layer) #
+                if agent != 0:
+                    # Here get expected random move by ghost #
+                    # Choosing uniformly at random #
+                    nextEl = list(maxAct)
+                    return sum(nextEl) / len(nextEl)   
+
+                # If pacman turn (max layer)#               
+                else:
+                    # pick maximim of possible next actions #
+                    return max(maxAct)
+         
+               
+
+        # return best option #
+        return max(gameState.getLegalActions(0), key=expNext)
+
+        # Call expectiMax with initial depth = 0 and get an action  #
+        # Pacman plays first -> agent == 0 or self.index            #
+        # We can will more likely than minimax. Ghosts may not play #
+        # optimal in some cases                                     #
+
+        return expectiMax(gameState,self.index,0)[1]
+
+        "util.raiseNotDefined()"
 
 def betterEvaluationFunction(currentGameState):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-      DESCRIPTION: <write something here so we know what you did>
+      DESCRIPTION: We want to weigh the food, game score and ghosts into our decision.
+      So we need to take in our current position, the ghost states, food location
+      and the ability to eat ghosts (so they're properly weighted). Each element
+      (food left, distance to food, distance to ghosts, ability to eat ghosts and
+      game score) is being taken into account in return. 
+      I got my weights by just kind of playing around with them seeing what got higher scores
+      Also, I score well on all the tests but the 6th one I get something in the 600s. cant figure out why
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # Get the current position, ghost states, time to eat ghosts, and food states #
+    nextPosition = currentGameState.getPacmanPosition()
+    nextGhost = currentGameState.getGhostStates()
+    eatGhostTime =  [ghostState.scaredTimer for ghostState in nextGhost]
+    nextFood = [food for food in currentGameState.getFood().asList() if food]
+
+    
+    # get the closest ghost #
+    closeGhost = min( manhattanDistance(nextPosition, ghost.configuration.pos) for ghost in nextGhost)
+
+    # get the closest food if food remains #
+    if nextFood:
+        closeFood = min( manhattanDistance(nextPosition, food) for food in nextFood)
+    else:
+        closeFood = 0
+
+    # get the time remaining to eat ghosts #
+    eatTime = min(eatGhostTime)
+
+
+
+    # weigh ghost distance accordingly to if they can be eaten #
+    if eatTime == 0:
+        # +1 in denominator so no divide by 0 #
+        ghostWeight = -2 / (closeGhost + 1)
+    else:
+        ghostWeight = 0.5 / (closeGhost + 1)
+
+    # slihtly weigh ability to eat ghosts #
+    eatWeight = eatTime * 0.5
+
+    # count food left to get #
+    foodLeft = -len(nextFood)
+
+    # weigh distance to food #
+    distWeight = 0.5 / (closeFood + 1)
+
+    # weigh the current game score #
+    gameScore = currentGameState.getScore() * 0.7
+
+    # We want to return the sum of these #
+    sum = ghostWeight + eatWeight + foodLeft + distWeight + gameScore
+    return sum
 
 # Abbreviation
 better = betterEvaluationFunction
