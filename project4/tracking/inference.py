@@ -387,7 +387,9 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-
+        # this is my old shitty version that didn't work
+        # shame on you old version
+        """
         newParticles = util.Counter()
 
         for oldPos in self.allPositions:
@@ -396,6 +398,21 @@ class ParticleFilter(InferenceModule):
         # the assignent says to update particles, but my pacman score's a higher when i update beleif instead
         # self.particle = newParticles
         self.beleifs = newParticles
+        """
+
+        # here's my better code that actually works
+
+        # list to hold new particles
+        newParts = list()
+        
+        # iterate over every particle, and add new position to newParts list
+        for particle in self.particles:
+            tempPart = self.getPositionDistribution(gameState, particle).sample()
+            newParts.append(tempPart)
+
+        #update particles with our newPart list
+        self.particles = newParts
+
 
     def getBeliefDistribution(self):
         """
@@ -411,9 +428,6 @@ class ParticleFilter(InferenceModule):
             beliefDistribution[particle] += 1
         beliefDistribution.normalize()
         return beliefDistribution
-        
-
-       
         
 
 class JointParticleFilter(ParticleFilter):
