@@ -16,6 +16,7 @@ import itertools
 import random
 import busters
 import game
+import util
 
 from util import manhattanDistance, raiseNotDefined
 
@@ -74,7 +75,8 @@ class DiscreteDistribution(dict):
         >>> empty
         {}
         """
-        "*** YOUR CODE HERE ***"        total = self.total()
+        "*** YOUR CODE HERE ***"        
+        total = self.total()
         if self.total() != 0:
             for key in self.keys():
                 self[key] = self[key]/total
@@ -358,7 +360,26 @@ class ParticleFilter(InferenceModule):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # get pacman and jail positions
+        pacmanPosition = gameState.getPacmanPosition()
+        jailPosition = self.getJailPosition()
+        
+        # initiallize counter to store updates
+        count = util.Counter()
+        
+        # iterate over particles and add their observationprob to the counter
+        for p in self.particles:
+            obProb = self.getObservationProb(observation, pacmanPosition, p, jailPosition)
+            count[p] += obProb
+
+        # check that if all particles have zero weight
+        if count.totalCount() == 0:
+            self.initializeUniformly(gameState)
+
+        # otherwize, normalize and update particles
+        else:
+            count.normalize()
+            self.particles = [util.sample(count) for i in range(self.numParticles)]
 
     def elapseTime(self, gameState):
         """
@@ -366,7 +387,15 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        newParticles = util.Counter()
+
+        for oldPos in self.allPositions:
+            newParticles[oldPos] = self.getPositionDistribution(gameState, oldPos).sample()
+        
+        # the assignent says to update particles, but my pacman score's a higher when i update beleif instead
+        # self.particle = newParticles
+        self.beleifs = newParticles
 
     def getBeliefDistribution(self):
         """
@@ -376,12 +405,16 @@ class ParticleFilter(InferenceModule):
         
         This function should return a normalized distribution.
         """
+        
         beliefDistribution = DiscreteDistribution()
         for particle in self.particles:
             beliefDistribution[particle] += 1
         beliefDistribution.normalize()
         return beliefDistribution
+        
 
+       
+        
 
 class JointParticleFilter(ParticleFilter):
     """
@@ -408,7 +441,28 @@ class JointParticleFilter(ParticleFilter):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        # get number of particles to count down
+        partCounter = self.numParticles
+
+        # get list of permutation of legal positions based on number of ghosts
+        permList = list(itertools.product(self.legalPositions, repeat = self.numGhosts))
+	# get length of permList
+        permLen = len(permList)
+
+        # shuffle the permutations randomly
+        random.shuffle(permList)
+
+        # evenly distribute particles across position
+        while partCounter > permLen:
+            # update particles
+            self.particles += permList
+            # decrement the counter
+            partCounter -= permLen
+
+        # add remaining permutations
+        self.particles += permList[:partCounter]
+
 
     def addGhostAgent(self, agent):
         """
@@ -441,7 +495,45 @@ class JointParticleFilter(ParticleFilter):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # get pacman position and declare descrete destribution
+        pacmanPosition = gameState.getPacmanPosition()
+        temp = DiscreteDistribution()
+        
+        # create temp prob counter, to get observation probs for each ghost to add
+        tempProb = 1
+
+        # iterate over particles
+        for part in self.particles:
+
+            # iterate over all ghosts            
+            for i in range(self.numGhosts):
+
+                # get noisy distance for getObserveProb
+                nois = observation[i]
+                # update tempProb with value
+                tempProb *= self.getObservationProb(nois, pacmanPosition, part[i], self.getJailPosition(i))
+             
+            # update descrete distribution
+            temp[part] += tempProb
+
+            # update prob count for next for iteration of for loop
+            tempProb = 1
+
+        # update beleifs with descrete distribution
+        self.beliefs = temp
+
+        # normalize beliefs         
+        self.beliefs.normalize()
+
+        # if the beleifs have weight 0, return uniform game stae
+        if self.beliefs.total() == 0:
+           self.initializeUniformly(gameState)
+        
+        # otherwise update particles
+        else:
+            for i in range(self.numParticles):
+                updatedParts = self.beliefs.sample()
+                self.particles[i] = updatedParts
 
     def elapseTime(self, gameState):
         """
@@ -454,11 +546,20 @@ class JointParticleFilter(ParticleFilter):
 
             # now loop through and update each entry in newParticle...
             "*** YOUR CODE HERE ***"
-            raiseNotDefined()
+
+            # get old ghost positions
+            oldGhost = list(oldParticle)
+
+            # loop over ghosts like last question
+            for i in range(self.numGhosts):
+                # get distribution over new positions for the ghost we're on
+                newPosDist = self.getPositionDistribution(gameState, oldGhost, i, self.ghostAgents[i])
+                # add sample of distribution to new particles list
+                newParticle[i] = newPosDist.sample()
 
             """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
-        self.particles = newParticles
+            self.particles = newParticles
 
 
 # One JointInference module is shared globally across instances of MarginalInference
